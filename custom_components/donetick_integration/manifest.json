@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "config_flow": true,
   "requirements": ["aiohttp"],
-  "documentation": "https://your.documentation.url",
+  "documentation": "https://github.com/djryner/donetick_integration/README.md",
   "iot_class": "cloud_polling",
   "dependencies": ["button"]
 }
