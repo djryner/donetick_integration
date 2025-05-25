@@ -1,4 +1,3 @@
-
 import logging
 import aiohttp
 from datetime import timedelta
@@ -12,7 +11,10 @@ from .button import DonetickChoreCompleteButton
 
 _LOGGER = logging.getLogger(__name__)
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback):
+
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+):
     """Set up Donetick sensors from a config entry."""
 
     api_url = entry.data["api_url"]
@@ -23,17 +25,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     await coordinator.async_refresh()
 
     if not coordinator.last_update_success:
-        _LOGGER.error("Failed to fetch initial data from Donetick API") 
+        _LOGGER.error("Failed to fetch initial data from Donetick API")
         return False
 
     # Store coordinator in hass.data for button platform to use
     hass.data[DOMAIN][entry.entry_id]["coordinator"] = coordinator
-    
+
     sensors = []
     buttons = []
     for chore in coordinator.data:
         sensor = DonetickChoreSensor(name, chore, coordinator)
-        button = DonetickChoreCompleteButton(chore["id"], chore["name"], api_url, api_token, sensor)
+        button = DonetickChoreCompleteButton(
+            chore["id"], chore["name"], api_url, api_token, sensor
+        )
         sensors.append(sensor)
         buttons.append(button)
 
@@ -57,7 +61,9 @@ class DonetickDataUpdateCoordinator(DataUpdateCoordinator):
         """Fetch data from Donetick API."""
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(self.api_url, headers={"secretkey": self.api_token}) as resp:
+                async with session.get(
+                    self.api_url, headers={"secretkey": self.api_token}
+                ) as resp:
                     if resp.status != 200:
                         raise UpdateFailed(f"API response status: {resp.status}")
                     data = await resp.json()
@@ -69,13 +75,15 @@ class DonetickDataUpdateCoordinator(DataUpdateCoordinator):
 
 
 class DonetickChoreSensor(SensorEntity):
-    def __init__(self, base_name, chore_data, coordinator: DonetickDataUpdateCoordinator):
+    def __init__(
+        self, base_name, chore_data, coordinator: DonetickDataUpdateCoordinator
+    ):
         self.coordinator = coordinator
         self._chore_id = chore_data["id"]
         self._base_name = base_name
         self._chore = chore_data
 
-        self._attr_name = chore_data['name'].strip()
+        self._attr_name = chore_data["name"].strip()
         self._attr_unique_id = f"donetick_chore_{self._chore_id}"
         self._attr_has_entity_name = True
 
@@ -90,7 +98,10 @@ class DonetickChoreSensor(SensorEntity):
         """Return the state attributes."""
         return {
             "chore_id": self._chore["id"],
-            "assigned_to": self._chore.get("assignedTo", "Unassigned")
+            "assigned_to": self._chore.get("assignedTo", "Unassigned"),
+            "due_date": self._chore.get("dueDate"),
+            "notes": self._chore.get("notes"),
+            **self._extra_attributes,
         }
 
     @property
@@ -122,7 +133,9 @@ class DonetickChoreSensor(SensorEntity):
             _LOGGER.warning("Chore with ID %s not found during update", self._chore_id)
 
     def _update_state_from_chore(self, chore):
-        self._attr_native_value = "incomplete" if chore.get("status", 0) == 0 else "complete"
+        self._attr_native_value = (
+            "incomplete" if chore.get("status", 0) == 0 else "complete"
+        )
         self._extra_attributes = {
             "assigned_to": chore.get("assignedTo"),
             "due_date": chore.get("dueDate"),
