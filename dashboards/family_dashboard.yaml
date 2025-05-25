@@ -1,1 +1,78 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "lovelace.dashboard_mediahub",
+  "data": {
+    "config": {
+      "title": "Family Dashboard",
+      "kiosk_mode": {
+        "hide_header": false,
+        "hide_sidebar": false
+      },
+      "views": [
+        {
+          "title": "Family Dashboard",
+          "path": "family-dashboard",
+          "theme": "default",
+          "icon": "mdi:account-group",
+          "panel": false,
+          "cards": [
+            {
+              "type": "custom:layout-card",
+              "layout_type": "Grid",
+              "layout": {
+                "width": 300,
+                "max_cols": 2
+              },
+              "cards": [
+                {
+                  "type": "custom:atomic-calendar-revive",
+                  "name": "Dinner Menu",
+                  "entities": [
+                    "calendar.meals"
+                  ],
+                  "maxDaysToShow": 7,
+                  "showLocation": false,
+                  "showDate": true,
+                  "showMonth": false,
+                  "showWeekDay": true,
+                  "showDescription": false,
+                  "hidePastEvents": true,
+                  "showNoEventsForToday": true,
+                  "firstDayOfWeek": 1,
+                  "showMultiDay": false,
+                  "dateFormat": "short",
+                  "timeFormat": 12,
+                  "cardHeight": 400,
+                  "language": "en"
+                },
+                {
+                  "type": "custom:auto-entities",
+                  "card": {
+                    "type": "entities",
+                    "title": "Today's Chores",
+                    "show_header_toggle": false
+                  },
+                  "filter": {
+                    "include": [
+                      {
+                        "entity_id": "sensor.donetick_chores_*",
+                        "state": "incomplete"
+                      }
+                    ]
+                  },
+                  "sort": {
+                    "method": "name"
+                  },
+                  "card_param": "entities",
+                  "template": "{% for entity in entities %}\n  {\n    \"type\": \"custom:template-entity-row\",\n    \"entity\": \"{{ entity.entity_id }}\",\n    \"name\": \"{{ state_attr(entity.entity_id, 'friendly_name') | replace('Donetick: ', '') | replace('Donetick_Chores: ', '') }}\",\n    \"secondary\": \"Assigned to: {{ state_attr(entity.entity_id, 'assigned_to') }}\",\n    \"tap_action\": {\n      \"action\": \"call-service\",\n      \"service\": \"button.press\",\n      \"service_data\": {\n        \"entity_id\": \"button.{{ entity.entity_id.split('.')[1] | replace('sensor_donetick_chores_', 'complete_') }}\"\n      }\n    }\n  }{% if not loop.last %},{% endif %}\n{% endfor %}\n"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
 
