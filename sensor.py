@@ -36,7 +36,7 @@ async def async_setup_entry(
     for chore in coordinator.data:
         sensor = DonetickChoreSensor(name, chore, coordinator)
         button = DonetickChoreCompleteButton(
-            chore["id"], chore["name"], api_url, api_token, sensor
+            chore["id"], chore["name"], api_url, api_token
         )
         sensors.append(sensor)
         buttons.append(button)
