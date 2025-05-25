@@ -22,17 +22,28 @@ async def async_setup_entry(
     api_token = entry.data["api_token"]
 
     # The coordinator should be shared between sensor and button
+    _LOGGER.debug("Attempting to retrieve coordinator for Donetick buttons. hass.data content for domain %s, entry %s: %s", DOMAIN, entry.entry_id, hass.data.get(DOMAIN, {}).get(entry.entry_id, {}))
     coordinator = hass.data[DOMAIN][entry.entry_id].get("coordinator")
     if not coordinator:
+        _LOGGER.warning("Coordinator not found in hass.data for Donetick buttons. No buttons will be set up.")
+        return
+
+    if not hasattr(coordinator, 'data') or not coordinator.data:
+        _LOGGER.warning("Coordinator data is missing or empty. No Donetick buttons will be created. Coordinator object: %s", coordinator)
         return
 
     buttons = []
+    _LOGGER.debug("Coordinator found with data. Number of chores to process for buttons: %s", len(coordinator.data))
     for chore in coordinator.data:
         button = DonetickChoreCompleteButton(
             chore["id"], chore["name"], api_url, api_token
         )
         buttons.append(button)
+        _LOGGER.debug("Created and appended button: %s", button.name)
 
+    if not buttons:
+        _LOGGER.warning("No buttons were created to be added for Donetick.")
+    _LOGGER.debug("Calling async_add_entities with %s buttons: %s", len(buttons), [b.name for b in buttons])
     async_add_entities(buttons, True)
 
 
