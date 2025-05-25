@@ -3,18 +3,39 @@ import aiohttp
 from homeassistant.components.button import ButtonEntity
 from homeassistant.core import callback
 from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up the Donetick buttons."""
+    api_url = entry.data["api_url"]
+    api_token = entry.data["api_token"]
+    
+    # The coordinator should be shared between sensor and button
+    coordinator = hass.data[DOMAIN][entry.entry_id].get("coordinator")
+    if not coordinator:
+        return
+    
+    buttons = []
+    for chore in coordinator.data:
+        button = DonetickChoreCompleteButton(chore["id"], chore["name"], api_url, api_token)
+        buttons.append(button)
+    
+    async_add_entities(buttons, True)
+
 class DonetickChoreCompleteButton(ButtonEntity):
     """Button to mark a Donetick chore as complete."""
 
-    def __init__(self, chore_id, chore_name, api_url, api_token, linked_sensor):
+    def __init__(self, chore_id, chore_name, api_url, api_token):
         self._chore_id = chore_id
         self._api_url = api_url
         self._api_token = api_token
-        self._linked_sensor = linked_sensor  # Reference to the sensor
         self._attr_name = f"Complete: {chore_name}"
         self._attr_unique_id = f"{DOMAIN}_complete_{chore_id}"
         self._attr_device_info = DeviceInfo(
@@ -37,9 +58,7 @@ class DonetickChoreCompleteButton(ButtonEntity):
                     else:
                         _LOGGER.info("Successfully completed chore %s", self._chore_id)
 
-                        # Refresh the linked sensor state
-                        await self._linked_sensor.async_update()
-                        await self._linked_sensor.async_update_ha_state(force_refresh=True)
-
+        except Exception as err:
+            _LOGGER.exception("Error completing chore %s: %s", self._chore_id, err)
         except Exception as err:
             _LOGGER.exception("Error completing chore %s: %s", self._chore_id, err)

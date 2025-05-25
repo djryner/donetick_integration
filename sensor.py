@@ -26,6 +26,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         _LOGGER.error("Failed to fetch initial data from Donetick API") 
         return False
 
+    # Store coordinator in hass.data for button platform to use
+    hass.data[DOMAIN][entry.entry_id]["coordinator"] = coordinator
+    
     sensors = []
     buttons = []
     for chore in coordinator.data:
