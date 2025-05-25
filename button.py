@@ -29,7 +29,7 @@ async def async_setup_entry(
     buttons = []
     for chore in coordinator.data:
         button = DonetickChoreCompleteButton(
-            chore["id"], chore["name"], api_url, api_token, DonetickChoreSensor
+            chore["id"], chore["name"], api_url, api_token
         )
         buttons.append(button)
 
@@ -39,7 +39,7 @@ async def async_setup_entry(
 class DonetickChoreCompleteButton(ButtonEntity):
     """Button to mark a Donetick chore as complete."""
 
-    def __init__(self, chore_id, chore_name, api_url, api_token, sensor):
+    def __init__(self, chore_id, chore_name, api_url, api_token):
         self._chore_id = chore_id
         self._api_url = api_url
         self._api_token = api_token
@@ -51,7 +51,6 @@ class DonetickChoreCompleteButton(ButtonEntity):
             manufacturer="Donetick",
             model="Chore Completion",
         )
-        self.sensor = sensor
 
     async def async_press(self) -> None:
         """Send a request to mark the chore as complete and refresh sensor."""
