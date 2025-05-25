@@ -27,7 +27,7 @@ class DonetickDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         """Fetch data from API endpoint."""
-        url = f"{self.api_url}/chores"  # Assuming /chores is the endpoint
+        url = self.api_url  # The API URL already includes the full path
         headers = {"secretkey": self.api_token}
 
         try:
